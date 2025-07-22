@@ -27,8 +27,10 @@ local lib = library.new("My UI")
 ### Adding Pages
 Add pages to the library with an optional icon:
 ```lua
-local page1 = lib:addPage("Home", Icons:GetIcon("home", "Lucide")) -- Icon ID is optional, and get a list of all icon names here -> [Lucide Icons](https://raw.githubusercontent.com/Nebula-Softworks/Nebula-Icon-Library/master/LucideIcons.lua)
+local page1 = lib:addPage("Home", Icons:GetIcon("home", "Lucide")) -- Icon ID is optional
 ```
+
+Full list of all Lucide Icon names here -> [Lucide Icons](https://raw.githubusercontent.com/Nebula-Softworks/Nebula-Icon-Library/master/LucideIcons.lua)
 
 ### Adding Sections
 Add sections to a page:
