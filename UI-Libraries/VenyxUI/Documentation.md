@@ -12,7 +12,8 @@ The library creates a graphical user interface (GUI) within Roblox's environment
 2. Place the `script.lua` file into your Roblox project, typically within a `LocalScript` under `StarterGui` or a similar location.
 3. Require the script in your code:
    ```lua
-   local library = require(game.ReplicatedStorage.script) -- Adjust path as needed
+   local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/yourscoper/Roblox-Scripts/refs/heads/main/UI-Libraries/VenyxUI/source.lua"))(); -- Adjust path as needed
+   local Icons = loadstring(game:HttpGet("https://raw.githubusercontent.com/Nebula-Softworks/Nebula-Icon-Library/master/Loader.lua"))(); -- Adjust path as needed
    ```
 
 ## Usage
@@ -26,7 +27,7 @@ local lib = library.new("My UI")
 ### Adding Pages
 Add pages to the library with an optional icon:
 ```lua
-local page1 = lib:addPage("Home", 123456) -- Icon ID is optional
+local page1 = lib:addPage("Home", Icons:GetIcon("home", "Lucide")) -- Icon ID is optional, and get a list of all icon names here -> [Lucide Icons](https://raw.githubusercontent.com/Nebula-Softworks/Nebula-Icon-Library/master/LucideIcons.lua)
 ```
 
 ### Adding Sections
