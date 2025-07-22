@@ -102,7 +102,7 @@ if not _G.ScopersExistingHooks.GuiDetectionBypass then
         return old(self, ...)
     end)
     
-    _G.JxereasExistingHooks.GuiDetectionBypass = true
+    _G.ScopersExistingHooks.GuiDetectionBypass = true
 end
 
 local Notification = {}
