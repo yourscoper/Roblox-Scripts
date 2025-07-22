@@ -1,4 +1,4 @@
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/Jxereas/UI-Libraries/main/notification_gui_library.lua", true))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/yourscoper/Roblox-Scripts/refs/heads/main/UI-Libraries/NotificationLibary/source.lua", true))()
 
 --[[ * For each notification here's the documentation.
 
