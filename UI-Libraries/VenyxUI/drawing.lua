@@ -24,6 +24,16 @@ local objects = {}
 -- Drawing object management
 local drawingObjects = {}
 
+-- Get screen resolution
+local function getScreenSize()
+    local GuiService = game:GetService("GuiService")
+    if GuiService:GetScreenResolution() then
+        return GuiService:GetScreenResolution()
+    else
+        return Vector2.new(1920, 1080) -- Default fallback resolution
+    end
+end
+
 -- Utility functions
 do
     function utility:Create(type, properties)
@@ -125,7 +135,7 @@ do
         self.keybinds = {}
         self.ended = {}
 
-        input.InputBegan:Connect(function(key, proc)
+        UserInputService.InputBegan:Connect(function(key, proc)
             if self.keybinds[key.KeyCode] and not proc then
                 for i, bind in pairs(self.keybinds[key.KeyCode]) do
                     bind()
@@ -133,7 +143,7 @@ do
             end
         end)
 
-        input.InputEnded:Connect(function(key)
+        UserInputService.InputEnded:Connect(function(key)
             if key.UserInputType == Enum.UserInputType.MouseButton1 then
                 for i, callback in pairs(self.ended) do
                     callback()
@@ -157,9 +167,9 @@ do
     end
 
     function utility:KeyPressed()
-        local key = input.InputBegan:Wait()
+        local key = UserInputService.InputBegan:Wait()
         while key.UserInputType ~= Enum.UserInputType.Keyboard do
-            key = input.InputBegan:Wait()
+            key = UserInputService.InputBegan:Wait()
         end
         wait()
         return key
@@ -170,7 +180,7 @@ do
         local dragging = false
         local dragInput, mousePos, framePos
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= frame.Position.X and x <= frame.Position.X + frame.Size.X and
@@ -182,13 +192,13 @@ do
             end
         end)
 
-        input.InputEnded:Connect(function(input)
+        UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
 
-        input.InputChanged:Connect(function(input)
+        UserInputService.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
                 local delta = Vector2.new(input.Position.X, input.Position.Y) - mousePos
                 parent.Position = framePos + delta
@@ -204,7 +214,7 @@ do
         local temp = Drawing.new("Text")
         temp.Text = text
         temp.Size = size
-        temp.Font = font or Drawing.Fonts.Gotham
+        temp.Font = font or Drawing.Fonts.UI
         temp.Visible = false
         local size = temp.TextBounds
         temp:Remove()
@@ -223,31 +233,32 @@ do
     section.__index = section
 
     function library.new(title)
+        local screenSize = getScreenSize()
         local container = {
             Main = {
                 Background = utility:Create("Square", {
-                    Position = Vector2.new(0.35 * game:GetService("CoreGui").AbsoluteSize.X, 0.25 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(0.35 * screenSize.X, 0.25 * screenSize.Y),
                     Size = Vector2.new(511, 428),
                     Color = themes.Background,
                     Filled = true,
                     Transparency = 1
                 }),
                 Glow = utility:Create("Square", {
-                    Position = Vector2.new(-15, -15) + Vector2.new(0.35 * game:GetService("CoreGui").AbsoluteSize.X, 0.25 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(-15, -15) + Vector2.new(0.35 * screenSize.X, 0.25 * screenSize.Y),
                     Size = Vector2.new(511 + 30, 428 + 30),
                     Color = themes.Glow,
                     Filled = true,
                     Transparency = 0.5
                 }),
                 TopBar = utility:Create("Square", {
-                    Position = Vector2.new(0.35 * game:GetService("CoreGui").AbsoluteSize.X, 0.25 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(0.35 * screenSize.X, 0.25 * screenSize.Y),
                     Size = Vector2.new(511, 38),
                     Color = themes.Accent,
                     Filled = true,
                     Transparency = 1
                 }),
                 Title = utility:Create("Text", {
-                    Position = Vector2.new(12, 19) + Vector2.new(0.35 * game:GetService("CoreGui").AbsoluteSize.X, 0.25 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(12, 19) + Vector2.new(0.35 * screenSize.X, 0.25 * screenSize.Y),
                     Text = title,
                     Color = themes.TextColor,
                     Size = 14,
@@ -256,7 +267,7 @@ do
                 }),
                 Pages = {
                     Background = utility:Create("Square", {
-                        Position = Vector2.new(0, 38) + Vector2.new(0.35 * game:GetService("CoreGui").AbsoluteSize.X, 0.25 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(0, 38) + Vector2.new(0.35 * screenSize.X, 0.25 * screenSize.Y),
                         Size = Vector2.new(126, 428 - 38),
                         Color = themes.DarkContrast,
                         Filled = true,
@@ -304,7 +315,7 @@ do
         if icon then
             button.Icon = utility:Create("Text", {
                 Position = Vector2.new(12, 13) + (library.pagesContainer.Objects[#library.pagesContainer.Objects] and (library.pagesContainer.Objects[#library.pagesContainer.Objects].Position + Vector2.new(0, 26 + 10)) or Vector2.new(0, 10) + library.container.Main.Pages.Background.Position),
-                Text = "I", -- Placeholder for icon
+                Text = icon, -- Use provided icon text
                 Color = themes.TextColor,
                 Size = 12,
                 Font = Drawing.Fonts.UI,
@@ -374,7 +385,7 @@ do
 
         table.insert(self.pages, page)
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= button.Background.Position.X and x <= button.Background.Position.X + button.Background.Size.X and
@@ -443,28 +454,28 @@ do
 
         local notification = {
             Background = utility:Create("Square", {
-                Position = self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70),
+                Position = self.lastNotification or Vector2.new(10, getScreenSize().Y - 70),
                 Size = Vector2.new(0, 60),
                 Color = themes.Background,
                 Filled = true,
                 Transparency = 1
             }),
             Flash = utility:Create("Square", {
-                Position = self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70),
+                Position = self.lastNotification or Vector2.new(10, getScreenSize().Y - 70),
                 Size = Vector2.new(0, 60),
                 Color = themes.TextColor,
                 Filled = true,
                 Transparency = 1
             }),
             Glow = utility:Create("Square", {
-                Position = (self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70)) + Vector2.new(-15, -15),
+                Position = (self.lastNotification or Vector2.new(10, getScreenSize().Y - 70)) + Vector2.new(-15, -15),
                 Size = Vector2.new(30, 90),
                 Color = themes.Glow,
                 Filled = true,
                 Transparency = 0.5
             }),
             Title = utility:Create("Text", {
-                Position = (self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70)) + Vector2.new(10, 8),
+                Position = (self.lastNotification or Vector2.new(10, getScreenSize().Y - 70)) + Vector2.new(10, 8),
                 Text = title or "Notification",
                 Color = themes.TextColor,
                 Size = 14,
@@ -472,7 +483,7 @@ do
                 Transparency = 1
             }),
             Text = utility:Create("Text", {
-                Position = (self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70)) + Vector2.new(10, 36),
+                Position = (self.lastNotification or Vector2.new(10, getScreenSize().Y - 70)) + Vector2.new(10, 36),
                 Text = text or "",
                 Color = themes.TextColor,
                 Size = 12,
@@ -480,14 +491,14 @@ do
                 Transparency = 1
             }),
             Accept = utility:Create("Square", {
-                Position = (self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70)) + Vector2.new(174, 8),
+                Position = (self.lastNotification or Vector2.new(10, getScreenSize().Y - 70)) + Vector2.new(174, 8),
                 Size = Vector2.new(16, 16),
                 Color = themes.TextColor,
                 Filled = true,
                 Transparency = 1
             }),
             Decline = utility:Create("Square", {
-                Position = (self.lastNotification or Vector2.new(10, game:GetService("CoreGui").AbsoluteSize.Y - 70)) + Vector2.new(174, 36),
+                Position = (self.lastNotification or Vector2.new(10, getScreenSize().Y - 70)) + Vector2.new(174, 36),
                 Size = Vector2.new(16, 16),
                 Color = themes.TextColor,
                 Filled = true,
@@ -516,7 +527,7 @@ do
 
         self.activeNotification = close
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 and active then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= notification.Accept.Position.X and x <= notification.Accept.Position.X + 16 and
@@ -556,7 +567,7 @@ do
         table.insert(self.modules, button)
 
         local debounce
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 and not debounce then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= button.Background.Position.X and x <= button.Background.Position.X + button.Background.Size.X and
@@ -621,7 +632,7 @@ do
         local active = default
         self:updateToggle(toggle, nil, active)
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= toggle.Background.Position.X and x <= toggle.Background.Position.X + toggle.Background.Size.X and
@@ -683,7 +694,7 @@ do
         local text = default or ""
         local connection
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= textbox.Button.Background.Position.X and x <= textbox.Button.Background.Position.X + textbox.Button.Background.Size.X and
@@ -709,7 +720,7 @@ do
             end
         end)
 
-        input.TextInputBegan:Connect(function(input)
+        UserInputService.TextInputBegan:Connect(function(input)
             if focused then
                 text = text .. input.KeyCode.Name
                 textbox.Button.Textbox.Text = text
@@ -781,7 +792,7 @@ do
             self:updateKeybind(keybind, nil, default)
         end
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= keybind.Background.Position.X and x <= keybind.Background.Position.X + keybind.Background.Size.X and
@@ -835,7 +846,7 @@ do
 
         local tab = {
             Background = utility:Create("Square", {
-                Position = Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                Position = Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                 Size = Vector2.new(162, 169),
                 Color = themes.Background,
                 Filled = true,
@@ -843,14 +854,14 @@ do
                 Visible = false
             }),
             Glow = utility:Create("Square", {
-                Position = Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X - 15, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y - 15),
+                Position = Vector2.new(0.75 * getScreenSize().X - 15, 0.4 * getScreenSize().Y - 15),
                 Size = Vector2.new(162 + 30, 169 + 30),
                 Color = themes.Glow,
                 Filled = true,
                 Transparency = 0.5
             }),
             Title = utility:Create("Text", {
-                Position = Vector2.new(10, 8) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                Position = Vector2.new(10, 8) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                 Text = title,
                 Color = themes.TextColor,
                 Size = 14,
@@ -858,7 +869,7 @@ do
                 Transparency = 1
             }),
             Close = utility:Create("Square", {
-                Position = Vector2.new(136, 8) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                Position = Vector2.new(136, 8) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                 Size = Vector2.new(16, 16),
                 Color = themes.TextColor,
                 Filled = true,
@@ -866,14 +877,14 @@ do
             }),
             Container = {
                 Canvas = utility:Create("Square", {
-                    Position = Vector2.new(8, 32) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(8, 32) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                     Size = Vector2.new(146, 60),
                     Color = Color3.fromRGB(255, 0, 0),
                     Filled = true,
                     Transparency = 1
                 }),
                 Color = utility:Create("Square", {
-                    Position = Vector2.new(8, 96) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(8, 96) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                     Size = Vector2.new(146, 16),
                     Color = Color3.fromRGB(255, 0, 0),
                     Filled = true,
@@ -881,14 +892,14 @@ do
                 }),
                 Inputs = {
                     R = utility:Create("Square", {
-                        Position = Vector2.new(10, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(10, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Size = Vector2.new(44, 16),
                         Color = themes.DarkContrast,
                         Filled = true,
                         Transparency = 1
                     }),
                     RText = utility:Create("Text", {
-                        Position = Vector2.new(10, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(10, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Text = "R: 255",
                         Color = themes.TextColor,
                         Size = 10,
@@ -896,14 +907,14 @@ do
                         Transparency = 1
                     }),
                     G = utility:Create("Square", {
-                        Position = Vector2.new(60, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(60, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Size = Vector2.new(44, 16),
                         Color = themes.DarkContrast,
                         Filled = true,
                         Transparency = 1
                     }),
                     GText = utility:Create("Text", {
-                        Position = Vector2.new(60, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(60, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Text = "G: 255",
                         Color = themes.TextColor,
                         Size = 10,
@@ -911,14 +922,14 @@ do
                         Transparency = 1
                     }),
                     B = utility:Create("Square", {
-                        Position = Vector2.new(110, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(110, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Size = Vector2.new(44, 16),
                         Color = themes.DarkContrast,
                         Filled = true,
                         Transparency = 1
                     }),
                     BText = utility:Create("Text", {
-                        Position = Vector2.new(110, 158) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                        Position = Vector2.new(110, 158) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                         Text = "B: 255",
                         Color = themes.TextColor,
                         Size = 10,
@@ -927,14 +938,14 @@ do
                     })
                 },
                 Button = utility:Create("Square", {
-                    Position = Vector2.new(8, 129) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(8, 129) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                     Size = Vector2.new(146, 20),
                     Color = themes.DarkContrast,
                     Filled = true,
                     Transparency = 1
                 }),
                 ButtonText = utility:Create("Text", {
-                    Position = Vector2.new(8, 129) + Vector2.new(0.75 * game:GetService("CoreGui").AbsoluteSize.X, 0.4 * game:GetService("CoreGui").AbsoluteSize.Y),
+                    Position = Vector2.new(8, 129) + Vector2.new(0.75 * getScreenSize().X, 0.4 * getScreenSize().Y),
                     Text = "Submit",
                     Color = themes.TextColor,
                     Size = 11,
@@ -973,7 +984,7 @@ do
             self:updateColorPicker(colorpicker, nil, default)
         end
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= colorpicker.Background.Position.X and x <= colorpicker.Background.Position.X + colorpicker.Background.Size.X and
@@ -1070,7 +1081,7 @@ do
 
         self:updateSlider(slider, nil, value, min, max)
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= slider.Background.Position.X and x <= slider.Background.Position.X + slider.Background.Size.X and
@@ -1080,13 +1091,13 @@ do
             end
         end)
 
-        input.InputEnded:Connect(function(input)
+        UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
 
-        input.InputChanged:Connect(function(input)
+        UserInputService.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
                 local percent = math.clamp((Mouse.X - slider.Slider.Bar.Position.X) / slider.Slider.Bar.Size.X, 0, 1)
                 value = math.floor(min + (max - min) * percent)
@@ -1141,7 +1152,7 @@ do
         local focused = false
         list = list or {}
 
-        input.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local x, y = Mouse.X, Mouse.Y
                 if x >= search.Button.Position.X and x <= search.Button.Position.X + search.Button.Size.X and
@@ -1163,7 +1174,7 @@ do
             end
         end)
 
-        input.TextInputBegan:Connect(function(input)
+        UserInputService.TextInputBegan:Connect(function(input)
             if focused then
                 local key = input.KeyCode.Name
                 if key == "Backspace" then
@@ -1351,7 +1362,7 @@ do
         if title then
             slider.Title.Text = title
         end
-        local percent = (value or min) - min / (max - min)
+        local percent = (value or min) - min) / (max - min)
         value = value or math.floor(min + (max - min) * percent)
         slider.TextBox.Text = tostring(value)
         utility:Tween(slider.Slider.Fill, {Size = Vector2.new((slider.Slider.Bar.Size.X) * percent, 4)}, 0.1)
@@ -1391,7 +1402,7 @@ do
                 })
             }
             table.insert(dropdown.List.Frame.Objects, button.Background)
-            input.InputBegan:Connect(function(input)
+            UserInputService.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     local x, y = Mouse.X, Mouse.Y
                     if x >= button.Background.Position.X and x <= button.Background.Position.X + button.Background.Size.X and
