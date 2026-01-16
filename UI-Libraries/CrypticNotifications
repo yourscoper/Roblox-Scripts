@@ -1,0 +1,125 @@
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui");
+
+local NotificationLibrary = {}
+NotificationLibrary.ActiveNotifications = {}
+
+local BASE_POSITION = UDim2.new(0.8, 0, 0.85, 0)
+local OFFSCREEN_POSITION = UDim2.new(2, 0, 0.85, 0)
+local NOTIFICATION_SIZE = UDim2.new(0.2, 0, 0.027, 0)
+local STACK_OFFSET = 0.035
+
+local TWEEN_IN_INFO = TweenInfo.new(
+	0.65,
+	Enum.EasingStyle.Quint,
+	Enum.EasingDirection.Out
+)
+
+local TWEEN_OUT_INFO = TweenInfo.new(
+	0.55,
+	Enum.EasingStyle.Quint,
+	Enum.EasingDirection.In
+)
+
+local STACK_TWEEN_INFO = TweenInfo.new(
+	0.3,
+	Enum.EasingStyle.Quad,
+	Enum.EasingDirection.Out
+)
+
+local CrypticNotifications = Instance.new("ScreenGui")
+
+CrypticNotifications.Name = "CrypticNotifications"
+CrypticNotifications.ResetOnSpawn = false
+CrypticNotifications.Parent = CoreGui
+
+local function UpdateStack()
+	for i, frame in ipairs(NotificationLibrary.ActiveNotifications) do
+		if frame and frame.Parent then
+			local targetPos = BASE_POSITION - UDim2.new(0, 0, (i - 1) * STACK_OFFSET, 0)
+			TweenService:Create(
+				frame,
+				STACK_TWEEN_INFO,
+				{ Position = targetPos }
+			):Play()
+		end
+	end
+end
+
+function NotificationLibrary:Notify(data)
+	data = data or {}
+
+	local titleText = data.Title or "Notification"
+	local descText = data.Description or ""
+	local delayTime = data.Delay or 2
+
+	local Main = Instance.new("Frame")
+	
+	Main.Size = NOTIFICATION_SIZE
+	Main.Position = OFFSCREEN_POSITION
+	Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	Main.BorderSizePixel = 0
+	Main.AnchorPoint = Vector2.new(0, 0)
+	Main.Parent = CrypticNotifications
+
+	local Title = Instance.new("TextLabel")
+	
+	Title.Size = UDim2.new(0.5, 0, 1, 0)
+	Title.BackgroundTransparency = 1
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+	Title.Font = Enum.Font.SourceSans
+	Title.TextScaled = true
+	Title.TextWrapped = true
+	Title.TextColor3 = Color3.new(1, 1, 1)
+	Title.Text = titleText
+	Title.Parent = Main
+
+	local Description = Instance.new("TextLabel")
+	Description.Position = UDim2.new(0.5, 0, 0, 0)
+	Description.Size = UDim2.new(0.5, 0, 1, 0)
+	Description.BackgroundTransparency = 1
+	Description.TextXAlignment = Enum.TextXAlignment.Center
+	Description.Font = Enum.Font.SourceSans
+	Description.TextScaled = true
+	Description.TextWrapped = true
+	Description.TextColor3 = Color3.new(1, 1, 1)
+	Description.Text = descText
+	Description.Parent = Main
+
+	table.insert(NotificationLibrary.ActiveNotifications, 1, Main)
+	
+	UpdateStack()
+
+	TweenService:Create(
+		Main,
+		TWEEN_IN_INFO,
+		{ Position = BASE_POSITION }
+	):Play()
+
+	task.delay(delayTime, function()
+		if not Main or not Main.Parent then
+			return
+		end
+
+		local outTween = TweenService:Create(
+			Main,
+			TWEEN_OUT_INFO,
+			{ Position = OFFSCREEN_POSITION }
+		)
+
+		outTween:Play()
+		outTween.Completed:Wait()
+
+		for i, v in ipairs(NotificationLibrary.ActiveNotifications) do
+			if v == Main then
+				table.remove(NotificationLibrary.ActiveNotifications, i)
+				break
+			end
+		end
+
+		Main:Destroy()
+		UpdateStack()
+	end)
+end
+
+return NotificationLibrary
