@@ -14,8 +14,8 @@ local PlaceId = game.PlaceId
 local JobId = game.JobId
 local Game = 5278850819
 
-local ChatEvents = Storage.DefaultChatSystemChatEvents
-local ChatRemote = ChatEvents.SayMessageRequest
+--local ChatEvents = Storage.DefaultChatSystemChatEvents
+--local ChatRemote = ChatEvents.SayMessageRequest
 
 getgenv().StaffReach = 35
 getgenv().StaffAmplifier = 10
